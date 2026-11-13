@@ -3,27 +3,901 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Creative Agent</title>
-</head>
-<body>
-  <p id="status" role="status" aria-live="polite">채팅에 연결하는 중입니다...</p>
-  <div id="webchat" style="height: 600px"></div>
-  <script src="https://cdn.botframework.com/botframework-webchat/4.18.0/webchat.js"></script>
-  <script>
-    const BROKER_URL = "https://dl-broker-juwon-4jt3z.azurewebsites.net/api/directlineToken";
-    const SEALED = "mGRq6P9sT0_8VJbHnvtRAAM2sJdRN8CnK-hKT5xBWnljqd1eiZEq4YcP4oJfWE-gUFWQM7X74OILMsqKztXnO_3dSEScbsfkRcrCoOmeMjxgWosAkULWab3AXYv3h38MTg6npheoqPp7am8juSh4RCnXEcbrsx0x-ULM2JYEXJ_GFQ6_kT6nyd46QdC32ahEl-jyfNKrEuBy84bwoewGlN9bjdNFW44tfKWFqhbuS2KaPPSpgo7OjPCnLF-MhjUcIZEijYp1Wl6zfwsihtHvK2fvvl_ozCDGKEtvCgngWUDpQf2RIZNbzM_fG1YfE9FBBw0uZ-ZlYXFKcjTySJKIR-PY5fFvi2n7C-hJzgrolcMln7P34styAx4YlfQSS_d3RQJ499fAx1DxfotSooqklBWMFimuoZbSnLO--Djmp1L2RRkbmJhByCP-_tL2TiRmA7Z2acBRzGgfQia_LvAnv0y4xGxE-tCOqbdvpIUMd_A4vqrVblAfnR-IZ-9JO6ASl1X7LPedQ-6IcHcrmj5LvKxzmNRcWeJLCsJoYQGBghB1hqF5fN3hnD7iGXPyyT7nVhPU1DZeTmJqqTrZGRRnM84oiLvgCfj8QkmCLgPfjXLn9Tld2CmhLMDaUOpcDKJaVM31slrY_JQJdYDWXA";
-    const status = document.getElementById("status");
+  <title>조각연습실 — 디자인 한 조각씩 직접 만들어 보는 연습</title>
+  <meta name="description" content="좋아하는 디자인에서 한 조각을 골라 직접 만들어 봐요.">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <style>
+    :root {
+      --lemon: #F2E14C;
+      --lemon-h: #F7EC86;
+      --lavender: #C9B8F0;
+      --lavender-h: #DACCF6;
+      --mint: #A8E2C8;
+      --mint-h: #C3ECD9;
+      --paper: #ECE5D3;
+      --paper-h: #F4EFE2;
+      --bg: #FBFAF5;
+      --white: #FFFFFF;
+      --ink: #151515;
+      --ink-2: #4A4A46;
+      --error: #B3261E;
+      --font: "Pretendard Variable", Pretendard, "SUIT Variable", SUIT, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      --gutter: 24px;
+      --margin: 40px;
+      --header-h: 64px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 17px;
+      line-height: 1.6;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { text-wrap: balance; line-height: 1.1; letter-spacing: -0.02em; }
+    button { font: inherit; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+    .skip {
+      position: absolute; left: 16px; top: -60px; z-index: 50;
+      background: var(--ink); color: var(--white); padding: 10px 16px;
+    }
+    .skip:focus { top: 12px; }
 
-    function showError(message) {
-      status.hidden = false;
-      status.textContent = message;
+    /* ---------- 12-column grid ---------- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gutter);
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 var(--margin);
     }
 
+    /* ---------- Header ---------- */
+    .site-header {
+      height: var(--header-h);
+      align-items: center;
+    }
+    .brand {
+      grid-column: 1 / span 5;
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 800; font-size: 20px; letter-spacing: -0.02em;
+    }
+    .brand svg { width: 28px; height: 28px; flex: none; }
+    .nav { grid-column: 6 / span 7; display: flex; justify-content: flex-start; gap: 4px; }
+    .nav a {
+      padding: 8px 14px; font-size: 16px; font-weight: 600;
+      background: transparent; transition: background-color .15s;
+    }
+    .nav a:hover { background: var(--paper); }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      grid-template-rows: minmax(560px, calc(100svh - var(--header-h) - var(--gutter)));
+      padding-bottom: var(--gutter);
+      row-gap: var(--gutter);
+    }
+    .intro {
+      grid-column: 1 / span 5;
+      background: var(--lemon);
+      padding: 40px;
+      display: flex; flex-direction: column;
+      min-height: 0;
+    }
+    .eyebrow { font-size: 16px; font-weight: 700; letter-spacing: 0.02em; }
+    .title {
+      margin-top: 28px;
+      font-size: clamp(72px, 8.4vw, 136px);
+      font-weight: 900;
+      line-height: 0.92;
+      letter-spacing: -0.045em;
+    }
+    .lede { margin-top: 28px; font-size: 22px; font-weight: 600; line-height: 1.45; max-width: 18em; }
+    .intro-more { margin-top: 20px; }
+    .intro-more summary { display: none; }
+    .intro-more p { font-size: 16px; color: var(--ink-2); max-width: 26em; }
+    .intro-more p + p { margin-top: 8px; }
+    .hero-puzzle { margin-top: auto; padding-top: 32px; }
+    .hero-puzzle svg { display: block; width: 100%; max-width: 360px; height: auto; overflow: visible; }
+
+    .assemble path {
+      animation: assemble .9s cubic-bezier(.2,.7,.2,1) both;
+      animation-delay: calc(var(--i) * 70ms);
+    }
+    @keyframes assemble {
+      from { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+      60% { opacity: 1; }
+      to { transform: translate(0, 0); opacity: 1; }
+    }
+
+    /* ---------- Chat panel ---------- */
+    .chat {
+      grid-column: 6 / span 7;
+      background: var(--white);
+      display: flex; flex-direction: column;
+      min-height: 0;
+      position: relative;
+    }
+    .chat-bar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 20px 16px 24px;
+      background: var(--lavender);
+    }
+    .chat-bar h2 { font-size: 22px; font-weight: 800; }
+    .conn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 600;
+      padding: 4px 10px; background: rgba(255,255,255,.55);
+    }
+    .conn::before {
+      content: ""; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--ink-2);
+    }
+    .conn[data-state="online"]::before { background: #1F8A5B; }
+    .conn[data-state="waiting"]::before { background: #1F8A5B; animation: pulse 1.2s ease-in-out infinite; }
+    .conn[data-state="connecting"]::before { background: #8A6A00; animation: pulse 1.2s ease-in-out infinite; }
+    .conn[data-state="error"]::before { background: var(--error); }
+    @keyframes pulse { 50% { opacity: .3; } }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 44px; padding: 10px 18px;
+      border: 0; cursor: pointer;
+      font-size: 16px; font-weight: 700; white-space: nowrap;
+      background: var(--ink); color: var(--white);
+      transition: background-color .15s, color .15s;
+    }
+    .btn:hover { background: #3A3A37; }
+    .btn--light { background: var(--white); color: var(--ink); }
+    .btn--light:hover { background: var(--paper-h); }
+    .chat-bar .btn { margin-left: auto; }
+
+    .prompts {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 14px 24px;
+      background: var(--paper-h);
+    }
+    .prompts-label { width: 100%; font-size: 15px; color: var(--ink-2); font-weight: 600; }
+    .prompt {
+      border: 0; cursor: pointer;
+      min-height: 44px; padding: 10px 16px;
+      background: var(--white); font-size: 16px; font-weight: 600;
+      transition: background-color .15s;
+    }
+    .prompt:hover { background: var(--lemon); }
+    .prompt[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+    .prompt[aria-disabled="true"]:hover { background: var(--white); }
+
+    .chat-body { position: relative; flex: 1; min-height: 0; display: flex; }
+    #webchat { position: absolute; inset: 0; }
+    .chat-loading, .chat-error {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+      padding: 40px; gap: 12px;
+      background: var(--white);
+    }
+    .chat-loading p { font-size: 18px; font-weight: 600; }
+    .chat-error { background: var(--paper-h); }
+    .chat-error h3 { font-size: 28px; font-weight: 800; }
+    .chat-error p { color: var(--ink-2); max-width: 32em; }
+    .chat-error .btn { margin-top: 8px; }
+    [hidden] { display: none !important; }
+
+    /* Web Chat look — keep its own send box, upload button and cards */
+    #webchat .webchat__basic-transcript__activity-body,
+    #webchat .webchat__text-content,
+    #webchat .webchat__bubble__content { font-size: 16px; line-height: 1.6; }
+    #webchat .webchat__send-box-text-box__input,
+    #webchat .webchat__send-box-text-box__text-area { font-size: 16px; font-family: var(--font); }
+    #webchat .webchat__send-box__main { min-height: 56px; }
+    #webchat .ac-pushButton { font-family: var(--font); }
+
+    /* ---------- Sections ---------- */
+    section.block { padding-top: 120px; }
+    .section-head { grid-column: 1 / -1; display: flex; align-items: baseline; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 40px; }
+    .section-head h2 { font-size: clamp(44px, 5.4vw, 88px); font-weight: 900; letter-spacing: -0.04em; }
+    .section-head p { font-size: 18px; color: var(--ink-2); max-width: 30em; }
+    .badge {
+      display: inline-block; padding: 4px 10px;
+      background: var(--ink); color: var(--white);
+      font-size: 14px; font-weight: 700; letter-spacing: .02em;
+      align-self: center;
+    }
+
+    /* Flow */
+    .flow-step {
+      grid-column: span 3;
+      padding: 28px 28px 32px;
+      min-height: 280px;
+      display: flex; flex-direction: column;
+    }
+    .flow-step .num { font-size: 16px; font-weight: 700; }
+    .flow-step h3 { margin-top: auto; font-size: 40px; font-weight: 900; }
+    .flow-step p { margin-top: 12px; font-size: 17px; }
+    .c-lemon { background: var(--lemon); }
+    .c-lavender { background: var(--lavender); }
+    .c-mint { background: var(--mint); }
+    .c-paper { background: var(--paper); }
+
+    /* Tag board */
+    .mock {
+      grid-column: 1 / -1;
+      display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); column-gap: var(--gutter); row-gap: 48px;
+      background: var(--white);
+      padding: 40px 0;
+    }
+    .mock > * { min-width: 0; }
+    .tag-group { grid-column: span 4; padding: 0 0 0 40px; }
+    .tag-group:last-child { padding-right: 40px; }
+    .tag-group h3 { font-size: 22px; font-weight: 800; margin-bottom: 16px; }
+    .puzzle-svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .piece { cursor: pointer; }
+    .piece path { fill: var(--c); transition: fill .15s; }
+    .piece:hover path { fill: var(--ch); }
+    .piece text { font-family: var(--font); font-weight: 700; font-size: 17px; fill: var(--ink); pointer-events: none; }
+    .piece .mark { fill: var(--ink); opacity: 0; }
+    .piece[aria-pressed="true"] path, .piece[aria-current="true"] path { fill: var(--ink); }
+    .piece[aria-pressed="true"] text, .piece[aria-current="true"] text { fill: var(--white); }
+    .piece[aria-pressed="true"] .mark, .piece[aria-current="true"] .mark { opacity: 1; fill: var(--lemon); }
+    .piece:focus { outline: none; }
+    .piece:focus-visible path { stroke: var(--ink); stroke-width: 4; paint-order: stroke; }
+    .piece[aria-pressed="true"]:focus-visible path, .piece[aria-current="true"]:focus-visible path { stroke: var(--lemon); }
+
+    .stage { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); column-gap: var(--gutter); padding: 0 40px; }
+    .stage-head { grid-column: 1 / span 3; }
+    .stage-head h3 { font-size: 40px; font-weight: 900; letter-spacing: -0.03em; }
+    .stage-head p { margin-top: 8px; font-size: 16px; color: var(--ink-2); }
+    .stage-body { grid-column: 4 / span 9; }
+    .refs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--gutter); }
+    .ref {
+      text-align: left; border: 0; cursor: pointer; padding: 0;
+      background: var(--paper-h); display: flex; flex-direction: column;
+      transition: background-color .15s;
+    }
+    .ref:hover { background: var(--paper); }
+    .ref[aria-pressed="true"] { background: var(--lemon); }
+    .ref-img {
+      aspect-ratio: 3 / 2; background: var(--paper);
+      display: flex; align-items: flex-end; padding: 16px;
+      font-size: 15px; color: var(--ink-2); font-weight: 600;
+    }
+    .ref[aria-pressed="true"] .ref-img { background: var(--lemon-h); }
+    .ref-meta { padding: 16px 20px 20px; display: grid; gap: 4px; }
+    .ref-title { font-size: 22px; font-weight: 800; font-style: italic; letter-spacing: -0.01em; }
+    .ref-by { font-size: 16px; }
+    .ref-look { margin-top: 8px; font-size: 16px; }
+    .ref-look b { font-weight: 700; }
+    .ref-src { font-size: 14px; color: var(--ink-2); }
+    .ref-pick { margin-top: 8px; font-size: 15px; font-weight: 700; }
+    .ref[aria-pressed="true"] .ref-pick::before { content: "● "; }
+
+    .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--gutter); }
+    .steps li { padding: 24px; min-height: 220px; display: flex; flex-direction: column; }
+    .steps .k { font-size: 15px; font-weight: 700; }
+    .steps h4 { margin: 24px 0 8px; font-size: 24px; font-weight: 800; }
+    .steps p { font-size: 16px; }
+    .mock-note { grid-column: 1 / -1; padding: 0 40px; font-size: 15px; color: var(--ink-2); }
+
+    /* Piece board */
+    .board-wrap { grid-column: 1 / span 7; padding-left: 40px; }
+    .board-detail { grid-column: 8 / span 5; padding-right: 40px; display: flex; flex-direction: column; }
+    .board-empty { background: var(--paper-h); padding: 32px; font-size: 18px; font-weight: 600; flex: 1; display: flex; align-items: center; }
+    .detail h3 { font-size: 32px; font-weight: 900; letter-spacing: -0.03em; }
+    .detail .tool { margin-top: 4px; font-size: 16px; color: var(--ink-2); }
+    .compare { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .compare figure { margin: 0; }
+    .compare svg { display: block; width: 100%; height: auto; }
+    .compare figcaption { margin-top: 6px; font-size: 15px; font-weight: 700; }
+    .settings { margin: 20px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 16px; }
+    .settings dt { font-weight: 700; }
+    .settings dd { margin: 0; }
+    .next { margin-top: 20px; padding: 16px 20px; background: var(--mint); font-size: 16px; }
+    .next b { display: block; font-size: 15px; }
+
+    footer.site-footer { padding: 120px 0 48px; }
+    footer .grid > p { grid-column: 1 / -1; font-size: 15px; color: var(--ink-2); }
+
+    /* ---------- Tablet ---------- */
+    @media (max-width: 1080px) {
+      :root { --margin: 24px; --gutter: 16px; }
+      .intro { padding: 32px; }
+      .flow-step { grid-column: span 6; min-height: 220px; }
+      .tag-group { grid-column: 1 / -1; padding: 0 32px; }
+      .tag-group:last-child { padding-right: 32px; }
+      .tag-group .puzzle-svg { max-width: 420px; }
+      .stage { padding: 0 32px; row-gap: 20px; }
+      .stage-head, .stage-body { grid-column: 1 / -1; }
+      .board-wrap, .board-detail { grid-column: 1 / -1; padding: 0 32px; }
+      .board-detail { margin-top: 32px; }
+      .mock-note { padding: 0 32px; }
+    }
+
+    /* ---------- Mobile ---------- */
+    @media (max-width: 760px) {
+      :root { --margin: 16px; --gutter: 12px; --header-h: 56px; }
+      body { font-size: 16px; }
+      .nav { display: none; }
+      .brand { grid-column: 1 / -1; font-size: 18px; }
+      .hero { display: flex; flex-direction: column; min-height: calc(100dvh - var(--header-h)); padding-left: 0; padding-right: 0; row-gap: 0; padding-bottom: 0; }
+      .intro { padding: 20px 16px 16px; }
+      .eyebrow { display: none; }
+      .title { margin-top: 0; font-size: 44px; line-height: 1; }
+      .title br { display: none; }
+      .lede { margin-top: 8px; font-size: 18px; }
+      .intro-more { margin-top: 8px; }
+      .intro-more summary { display: list-item; font-size: 15px; font-weight: 700; cursor: pointer; padding: 4px 0; }
+      .intro-more p { margin-top: 8px; }
+      .hero-puzzle { display: none; }
+      .chat { flex: 1; height: auto; min-height: 480px; }
+      .chat-bar { padding: 10px 12px 10px 16px; gap: 10px; }
+      .chat-bar h2 { font-size: 18px; }
+      .conn { font-size: 14px; padding: 2px 8px; }
+      .chat-bar .btn { min-height: 40px; padding: 8px 12px; font-size: 15px; }
+      .prompts { padding: 10px 12px; gap: 6px; }
+      .prompts-label { display: none; }
+      .prompt { min-height: 40px; padding: 8px 12px; font-size: 15px; }
+      .chat-error, .chat-loading { padding: 24px; }
+      section.block { padding-top: 80px; }
+      .section-head { margin-bottom: 24px; }
+      .section-head h2 { font-size: 44px; }
+      .section-head p { font-size: 16px; }
+      .flow-step { grid-column: 1 / -1; min-height: 0; padding: 20px; margin-bottom: 0; }
+      .flow-step h3 { margin-top: 24px; font-size: 32px; }
+      .mock { padding: 24px 0; row-gap: 32px; }
+      .tag-group, .tag-group:last-child, .stage, .board-wrap, .board-detail, .mock-note { padding-left: 16px; padding-right: 16px; }
+      .refs { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .steps li { min-height: 0; }
+      .stage-head h3 { font-size: 32px; }
+      #flow .grid { row-gap: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#chat">대화창으로 바로 가기</a>
+
+  <header>
+    <div class="grid site-header">
+      <a class="brand" href="#top" aria-label="조각연습실 처음으로">
+        <svg viewBox="0 0 28 28" aria-hidden="true"><path id="brand-mark" fill="#151515" d=""/></svg>
+        조각연습실
+      </a>
+      <nav class="nav" aria-label="페이지 내 이동">
+        <a href="#chat">대화</a>
+        <a href="#flow">사용 흐름</a>
+        <a href="#tags">태그 판</a>
+        <a href="#pieces">조각 보드</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ===== 첫 화면: 소개(5열) + 실제 대화창(7열) ===== -->
+    <section class="grid hero" aria-label="조각연습실 소개와 대화">
+      <div class="intro">
+        <p class="eyebrow">디자인 연습 에이전트</p>
+        <h1 class="title">조각<br>연습실</h1>
+        <p class="lede">좋아하는 디자인에서 한 조각을 골라 직접 만들어 봐요.</p>
+        <details class="intro-more" open>
+          <summary>어떻게 연습하나요?</summary>
+          <p>배우고 싶은 표현 하나와 쓰는 도구를 알려 주세요. 레퍼런스에서 볼 곳을 짚고, 지금 할 조작을 하나씩 안내해요.</p>
+          <p>포스터 이미지를 올리면 그 작품부터 함께 봐요.</p>
+        </details>
+        <div class="hero-puzzle" aria-hidden="true">
+          <svg id="hero-svg" viewBox="0 0 360 240"></svg>
+        </div>
+      </div>
+
+      <div class="chat" id="chat" role="region" aria-labelledby="chat-title">
+        <div class="chat-bar">
+          <h2 id="chat-title">조각연습실</h2>
+          <span class="conn" id="conn" data-state="connecting">연결 중</span>
+          <button class="btn btn--light" id="new-chat" type="button">새 대화</button>
+        </div>
+        <div class="prompts" role="group" aria-label="추천 프롬프트">
+          <p class="prompts-label">눌러서 입력창에 채운 뒤, 직접 보내 주세요.</p>
+          <button class="prompt" type="button" data-text="Figma로 포스터 제목을 강조하고 싶어요." aria-disabled="true">연습 주제 찾기</button>
+          <button class="prompt" type="button" data-text="색 대비를 연습하기 좋은 포스터를 찾아주세요." aria-disabled="true">레퍼런스 찾기</button>
+          <button class="prompt" type="button" data-text="Photoshop으로 참고 포스터의 한 요소를 따라 만들고 싶어요." aria-disabled="true">따라 만들어 보기</button>
+        </div>
+        <div class="chat-body">
+          <div id="webchat" role="main" aria-label="조각연습실 대화"></div>
+          <div class="chat-loading" id="chat-loading">
+            <p>조각연습실에 연결하는 중이에요…</p>
+          </div>
+          <div class="chat-error" id="chat-error" role="alert" hidden>
+            <h3>조각연습실에 연결할 수 없어요</h3>
+            <p id="chat-error-detail"></p>
+            <p>인터넷 연결을 확인한 뒤 ‘다시 시도’를 눌러 주세요. 계속 연결되지 않으면 페이지를 새로고침해 주세요.</p>
+            <button class="btn" id="retry" type="button">다시 시도</button>
+          </div>
+        </div>
+        <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- ===== 사용 흐름 ===== -->
+    <section class="block" id="flow" aria-labelledby="flow-title">
+      <div class="grid">
+        <div class="section-head">
+          <h2 id="flow-title">사용 흐름</h2>
+        </div>
+        <article class="flow-step c-lemon"><span class="num">01</span><h3>태그</h3><p>배우고 싶은 표현에 맞는 연습 주제를 골라요.</p></article>
+        <article class="flow-step c-lavender"><span class="num">02</span><h3>레퍼런스</h3><p>작품에서 어디를 볼지 확인해요.</p></article>
+        <article class="flow-step c-mint"><span class="num">03</span><h3>실습</h3><p>한 요소를 따라 만든 뒤 내 소재와 문구에 적용해요.</p></article>
+        <article class="flow-step c-paper"><span class="num">04</span><h3>기록</h3><p>바꾼 설정과 결과를 비교해 다음 연습에 남겨요.</p></article>
+      </div>
+    </section>
+
+    <!-- ===== 태그 판 시안 ===== -->
+    <section class="block" id="tags" aria-labelledby="tags-title">
+      <div class="grid">
+        <div class="section-head">
+          <h2 id="tags-title">태그 판</h2>
+          <span class="badge">화면 시안</span>
+          <p>후속 웹 구현에서 보여줄 화면이에요. 예시 조각을 눌러 볼 수 있지만, 대화창과는 연결되어 있지 않아요.</p>
+        </div>
+        <div class="mock" aria-label="태그 판 화면 시안">
+          <div class="tag-group"><h3 id="g0">읽기와 배치</h3><svg class="puzzle-svg" data-group="0" viewBox="0 0 240 240" role="group" aria-labelledby="g0"></svg></div>
+          <div class="tag-group"><h3 id="g1">색과 형태</h3><svg class="puzzle-svg" data-group="1" viewBox="0 0 240 240" role="group" aria-labelledby="g1"></svg></div>
+          <div class="tag-group"><h3 id="g2">깊이와 표면</h3><svg class="puzzle-svg" data-group="2" viewBox="0 0 240 240" role="group" aria-labelledby="g2"></svg></div>
+
+          <div class="stage" id="ref-stage" hidden>
+            <div class="stage-head">
+              <h3 lang="en">Reference</h3>
+              <p id="ref-sub"></p>
+            </div>
+            <div class="stage-body"><div class="refs" id="refs"></div></div>
+          </div>
+
+          <div class="stage" id="practice-stage" hidden>
+            <div class="stage-head">
+              <h3 lang="en">Practice</h3>
+              <p id="practice-sub"></p>
+            </div>
+            <div class="stage-body"><ol class="steps" id="steps"></ol></div>
+          </div>
+
+          <p class="mock-note">화면 시안 · 작품 이미지는 출처와 사용 조건을 확인한 뒤 넣을 예정이라 지금은 비워 두었어요.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 조각 보드 시안 ===== -->
+    <section class="block" id="pieces" aria-labelledby="pieces-title">
+      <div class="grid">
+        <div class="section-head">
+          <h2 id="pieces-title">조각 보드</h2>
+          <span class="badge">화면 시안</span>
+          <p>연습을 마칠 때마다 결과가 조각 하나로 남는 모습을 보여주는 예시예요. 기록은 저장되지 않아요.</p>
+        </div>
+        <div class="mock" aria-label="조각 보드 화면 시안">
+          <div class="board-wrap">
+            <svg class="puzzle-svg" id="board-svg" viewBox="0 0 360 240" role="group" aria-label="연습 결과 조각 예시"></svg>
+          </div>
+          <div class="board-detail" aria-live="polite">
+            <div class="board-empty" id="board-empty">조각을 하나 골라 전후 비교와 설정값을 확인해 보세요.</div>
+            <div class="detail" id="board-detail" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="grid">
+      <p>조각연습실 · 대화는 Copilot Studio 에이전트와 연결되어 있어요. 태그 판과 조각 보드는 화면 시안이에요.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.botframework.com/botframework-webchat/4.18.0/webchat.js"></script>
+  <script>
+  /* =====================================================================
+     1. Puzzle geometry — 맞물리는 두 조각은 같은 경로를 공유
+     ===================================================================== */
+  (function () {
+    "use strict";
+    const CURVE = [
+      [[0.32, 0], [0.42, -0.03], [0.39, 0.08]],
+      [[0.35, 0.20], [0.40, 0.28], [0.50, 0.28]],
+      [[0.60, 0.28], [0.65, 0.20], [0.61, 0.08]],
+      [[0.58, -0.03], [0.68, 0], [1, 0]]
+    ];
+    const r = (n) => Math.round(n * 100) / 100;
+
+    // canonical edge p0 -> p1, bump on side `sign`
+    function edge(p0, p1, sign) {
+      const vx = p1[0] - p0[0], vy = p1[1] - p0[1];
+      const map = ([t, n]) => [r(p0[0] + vx * t - vy * n * sign), r(p0[1] + vy * t + vx * n * sign)];
+      return CURVE.map((seg) => seg.map(map));
+    }
+    function reverse(segs, p0) {
+      const starts = [p0].concat(segs.map((s) => s[2]));
+      return segs.slice().reverse().map((s, i) => [s[1], s[0], starts[segs.length - 1 - i]]);
+    }
+    const C = (segs) => segs.map((s) => "C" + s.map((p) => p.join(",")).join(" ")).join("");
+
+    // cols x rows grid of size s. Tab signs are deterministic (design never changes).
+    function jigsaw(cols, rows, s, ox, oy) {
+      ox = ox || 0; oy = oy || 0;
+      const hSign = (x, y) => (y === 0 || y === rows) ? 0 : (((x * 3 + y) % 2) ? 1 : -1);
+      const vSign = (x, y) => (x === 0 || x === cols) ? 0 : (((x + y * 3 + 1) % 2) ? 1 : -1);
+      const P = (x, y) => [ox + x * s, oy + y * s];
+      const pieces = [];
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        const tl = P(x, y), tr = P(x + 1, y), br = P(x + 1, y + 1), bl = P(x, y + 1);
+        let d = "M" + tl.join(",");
+        const top = hSign(x, y), right = vSign(x + 1, y), bottom = hSign(x, y + 1), left = vSign(x, y);
+        d += top ? C(edge(tl, tr, top)) : "L" + tr.join(",");
+        d += right ? C(edge(tr, br, right)) : "L" + br.join(",");
+        d += bottom ? C(reverse(edge(bl, br, bottom), bl)) : "L" + bl.join(",");
+        d += left ? C(reverse(edge(tl, bl, left), tl)) : "L" + tl.join(",");
+        pieces.push({ x, y, d: d + "Z", cx: tl[0] + s / 2, cy: tl[1] + s / 2 });
+      }
+      return pieces;
+    }
+    window.Jigsaw = { jigsaw };
+
+    const NS = "http://www.w3.org/2000/svg";
+    const el = (tag, attrs) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+    const PALETTE = [
+      ["var(--lemon)", "var(--lemon-h)"],
+      ["var(--lavender)", "var(--lavender-h)"],
+      ["var(--mint)", "var(--mint-h)"],
+      ["var(--paper)", "var(--paper-h)"]
+    ];
+    const colorOf = (x, y, shift) => PALETTE[(x + 2 * y + (shift || 0)) % 4];
+
+    // brand mark: one piece from a 2x2 set
+    document.getElementById("brand-mark").setAttribute("d", jigsaw(2, 2, 16, 3, 3)[0].d);
+
+    // hero: 3x2 pieces assembling once
+    const hero = document.getElementById("hero-svg");
+    const heroColors = ["#151515", "var(--lavender)", "var(--mint)", "var(--white)", "var(--paper)", "var(--lavender)"];
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce) hero.classList.add("assemble");
+    jigsaw(3, 2, 120).forEach((p, i) => {
+      const dx = (p.x - 1) * 70 + (i % 2 ? 18 : -18), dy = (p.y ? 60 : -60);
+      const path = el("path", { d: p.d, fill: heroColors[i] });
+      path.style.setProperty("--dx", dx + "px");
+      path.style.setProperty("--dy", dy + "px");
+      path.style.setProperty("--i", i);
+      hero.appendChild(path);
+    });
+
+    function addLabel(g, text, cx, cy) {
+      const lines = text.split("\n");
+      const t = el("text", { "text-anchor": "middle", "dominant-baseline": "middle" });
+      lines.forEach((ln, i) => {
+        const ts = el("tspan", { x: cx, y: cy + (i - (lines.length - 1) / 2) * 21 });
+        ts.textContent = ln;
+        t.appendChild(ts);
+      });
+      g.appendChild(t);
+    }
+    function makePiece(svg, p, color, label, ariaLabel) {
+      const g = el("g", { class: "piece", tabindex: "0", role: "button", "aria-label": ariaLabel });
+      g.style.setProperty("--c", color[0]);
+      g.style.setProperty("--ch", color[1]);
+      g.appendChild(el("path", { d: p.d }));
+      g.appendChild(el("circle", { class: "mark", cx: p.cx - 34, cy: p.cy - 34, r: 6 }));
+      addLabel(g, label, p.cx, p.cy + 4);
+      svg.appendChild(g);
+      return g;
+    }
+    function activate(g, fn) {
+      g.addEventListener("click", fn);
+      g.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); }
+      });
+    }
+
+    /* =====================================================================
+       2. 태그 판 시안 데이터 (시안 안에서만 바뀜)
+       ===================================================================== */
+    const REFS = {
+      derfilm: { title: "Der Film", by: "Josef Müller-Brockmann", year: "1960" },
+      beethoven: { title: "Beethoven", by: "Josef Müller-Brockmann", year: "1955" },
+      giselle: { title: "Giselle", by: "Armin Hofmann", year: "1959" },
+      vormgevers: { title: "Vormgevers", by: "Wim Crouwel", year: "1968" },
+      pontresina: { title: "Pontresina Engadin", by: "Herbert Matter", year: "1935" },
+      munich: { title: "Olympische Spiele München 1972", by: "Otl Aicher", year: "1972" }
+    };
+    const GROUPS = [
+      [
+        { name: "제목\n위계", refs: [["derfilm", "가장 큰 글자와 작은 정보 글자의 크기 차이"], ["vormgevers", "제목 글자가 화면에서 차지하는 면적"]],
+          copy: "Figma에서 제목 텍스트 하나만 남기고, 크기를 두 배로 키워 화면의 중심을 잡아요.", apply: "내 포스터 제목에 같은 크기 비율을 적용하고, 나머지 정보는 한 단계 작게 묶어요.", check: "멀리서 봤을 때 제목이 가장 먼저 읽히는지 비교해요." },
+        { name: "그리드\n정렬", refs: [["vormgevers", "글자가 놓인 격자 칸의 간격"], ["derfilm", "텍스트 묶음의 왼쪽 시작선"]],
+          copy: "레이아웃 그리드를 12열로 켜고, 텍스트 박스의 시작선을 한 열 경계에 맞춰요.", apply: "내 작업의 모든 텍스트와 이미지를 같은 열 경계에 붙여요.", check: "시작선이 몇 개로 줄었는지 세어 기록해요." },
+        { name: "여백\n리듬", refs: [["beethoven", "호 사이 간격이 바뀌는 리듬"], ["derfilm", "글자 묶음 사이 빈 공간의 크기"]],
+          copy: "요소 사이 간격을 8px 배수 세 단계로만 다시 맞춰요.", apply: "내 작업에서 가장 중요한 묶음 앞에 가장 큰 여백을 줘요.", check: "여백 단계 수를 바꾸기 전과 비교해요." },
+        { name: "글자 크기\n대비", refs: [["giselle", "큰 제목과 작은 공연 정보의 크기 차이"], ["derfilm", "제목과 본문 정보의 크기 비율"]],
+          copy: "제목과 본문 크기 비율을 1:6 이상으로 벌려 보세요.", apply: "내 문구에서 가장 짧은 단어를 가장 크게 놓아요.", check: "비율을 숫자로 적어 다음 연습과 비교해요." }
+      ],
+      [
+        { name: "보색\n대비", refs: [["munich", "맞닿은 두 색면의 경계"], ["vormgevers", "글자색과 배경색의 차이"]],
+          copy: "배경과 제목을 색상환에서 마주 보는 두 색으로 바꿔요.", apply: "내 작업의 강조 요소 하나에만 보색을 써요.", check: "보색 면적 비율을 적고, 눈이 먼저 가는 곳을 확인해요." },
+        { name: "단색\n블록", refs: [["munich", "단색 면이 나뉘는 비율"], ["vormgevers", "색면과 글자가 만나는 위치"]],
+          copy: "사진을 지우고 화면을 단색 블록 세 개로만 나눠요.", apply: "가장 큰 블록에 제목을 얹고 나머지 블록에 정보를 나눠 담아요.", check: "블록 면적 비율을 기록해요." },
+        { name: "도형\n반복", refs: [["beethoven", "같은 호가 반복되며 크기가 바뀌는 방식"], ["munich", "같은 형태가 반복되는 간격"]],
+          copy: "도형 하나를 만들고, 일정 비율로 크기를 줄이며 다섯 번 복제해요.", apply: "내 작업의 핵심 형태 하나로 같은 반복을 만들어요.", check: "반복 간격 수치를 남겨요." },
+        { name: "형태\n자르기", refs: [["beethoven", "가장자리에서 형태가 잘리는 위치"], ["giselle", "화면 밖으로 이어지는 형태"]],
+          copy: "큰 도형을 화면 가장자리에 걸쳐 일부만 보이게 놓아요.", apply: "내 이미지나 글자 하나를 같은 방식으로 잘라 보세요.", check: "잘린 비율에 따라 인상이 어떻게 바뀌는지 비교해요." }
+      ],
+      [
+        { name: "겹침", refs: [["giselle", "사진과 글자가 겹치는 순서"], ["pontresina", "인물 사진과 풍경 사진의 앞뒤"]],
+          copy: "Photoshop에서 글자 레이어 일부를 사진 뒤로 보내고 마스크로 경계를 정리해요.", apply: "내 사진 소재에 제목 한 글자만 뒤로 숨겨 보세요.", check: "겹친 뒤에도 제목이 읽히는지 확인해요." },
+        { name: "질감", refs: [["giselle", "흑백 사진의 입자감"], ["pontresina", "사진 톤의 거친 정도"]],
+          copy: "노이즈 레이어를 만들어 곱하기 모드로 배경에 얹어요.", apply: "질감을 배경에만 적용하고 글자는 깨끗하게 남겨요.", check: "노이즈 양과 혼합 모드를 기록해요." },
+        { name: "원근", refs: [["pontresina", "사진 크기 차이로 만든 거리감"], ["giselle", "인물 크기와 화면 비율"]],
+          copy: "같은 소재를 큰 것과 작은 것 두 개로 배치해 앞뒤를 만들어요.", apply: "내 소재 중 하나를 크게 키워 앞에 두어요.", check: "크기 비율을 적고 거리감이 생겼는지 비교해요." },
+        { name: "빛과\n그림자", refs: [["pontresina", "사진 속 빛이 들어오는 방향"], ["giselle", "인물 위 밝은 면과 어두운 면의 비율"]],
+          copy: "곡선 조정으로 밝은 면과 어두운 면을 한쪽 방향으로 정리해요.", apply: "내 이미지의 빛 방향에 맞춰 글자 위치를 정해요.", check: "조정 전후 히스토그램을 비교해요." }
+      ]
+    ];
+    const plain = (s) => s.replace("\n", " ");
+
+    const refStage = document.getElementById("ref-stage");
+    const practiceStage = document.getElementById("practice-stage");
+    const refsBox = document.getElementById("refs");
+    const stepsBox = document.getElementById("steps");
+    let current = null;
+
+    document.querySelectorAll(".puzzle-svg[data-group]").forEach((svg) => {
+      const gi = +svg.dataset.group;
+      jigsaw(2, 2, 120).forEach((p, i) => {
+        const tag = GROUPS[gi][i];
+        const g = makePiece(svg, p, colorOf(p.x, p.y, gi), tag.name, plain(tag.name) + " 태그 (화면 시안)");
+        g.setAttribute("aria-pressed", "false");
+        activate(g, () => selectTag(tag, g));
+      });
+    });
+
+    function selectTag(tag, g) {
+      document.querySelectorAll(".puzzle-svg[data-group] .piece").forEach((n) => n.setAttribute("aria-pressed", "false"));
+      g.setAttribute("aria-pressed", "true");
+      current = tag;
+      document.getElementById("ref-sub").textContent = "‘" + plain(tag.name) + "’ 연습에 볼 작품이에요. 하나를 골라 주세요.";
+      refsBox.innerHTML = "";
+      tag.refs.forEach(([id, look]) => {
+        const ref = REFS[id];
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "ref"; b.setAttribute("aria-pressed", "false");
+        b.innerHTML =
+          '<span class="ref-img" aria-hidden="true">이미지 미포함 · 출처 확인 후 추가</span>' +
+          '<span class="ref-meta">' +
+            '<span class="ref-title" lang="en"></span>' +
+            '<span class="ref-by"></span>' +
+            '<span class="ref-src">출처 · 디자이너와 제작 연도 기준, 이미지 사용 조건 확인 전</span>' +
+            '<span class="ref-look"><b>볼 곳</b> · </span>' +
+            '<span class="ref-pick">이 작품으로 연습하기</span>' +
+          '</span>';
+        b.querySelector(".ref-title").textContent = ref.title;
+        b.querySelector(".ref-by").textContent = ref.by + ", " + ref.year;
+        b.querySelector(".ref-look").append(look);
+        b.addEventListener("click", () => selectRef(tag, ref, look, b));
+        refsBox.appendChild(b);
+      });
+      refStage.hidden = false;
+      practiceStage.hidden = true;
+    }
+
+    function selectRef(tag, ref, look, b) {
+      if (current !== tag) return;
+      refsBox.querySelectorAll(".ref").forEach((n) => n.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      document.getElementById("practice-sub").textContent = ref.title + " · " + plain(tag.name);
+      const steps = [
+        ["c-lemon", "1 · 관찰", "볼 곳 확인", look + "을(를) 먼저 살펴요."],
+        ["c-lavender", "2 · 따라 만들기", "한 요소만", tag.copy],
+        ["c-mint", "3 · 응용과 기록", "내 작업에", tag.apply + " " + tag.check]
+      ];
+      stepsBox.innerHTML = "";
+      steps.forEach(([c, k, h, p]) => {
+        const li = document.createElement("li");
+        li.className = c;
+        li.innerHTML = '<span class="k"></span><h4></h4><p></p>';
+        li.querySelector(".k").textContent = k;
+        li.querySelector("h4").textContent = h;
+        li.querySelector("p").textContent = p;
+        stepsBox.appendChild(li);
+      });
+      practiceStage.hidden = false;
+    }
+
+    /* =====================================================================
+       3. 조각 보드 시안
+       ===================================================================== */
+    const bars = (arr, bg) => '<svg viewBox="0 0 120 160" aria-hidden="true"><rect width="120" height="160" fill="' + bg + '"/>' + arr + "</svg>";
+    const R = (x, y, w, h, f) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + (f || "#151515") + '"/>';
+    const BOARD = [
+      { name: "제목\n위계", tool: "Figma",
+        before: bars(R(14,40,70,10)+R(14,58,64,10)+R(14,76,58,10)+R(14,94,66,10), "#FFFFFF"),
+        after: bars(R(10,20,100,34)+R(10,58,80,34)+R(10,120,46,5)+R(10,130,38,5), "#FFFFFF"),
+        settings: [["제목 크기", "48px → 120px"], ["제목 행간", "120% → 92%"], ["부제 크기", "24px → 14px"]],
+        next: "부제를 제목 아래 4열 너비에 맞춰 보기" },
+      { name: "보색\n대비", tool: "Photoshop",
+        before: bars(R(14,24,80,22,"#E6E6E6")+R(14,120,50,6,"#E6E6E6"), "#8FA3B8"),
+        after: bars(R(14,24,80,22,"#F2E14C")+R(14,120,50,6,"#F2E14C"), "#2B3FD9"),
+        settings: [["배경색", "#8FA3B8 → #2B3FD9"], ["제목색", "#E6E6E6 → #F2E14C"], ["채도", "+35"]],
+        next: "보색 면적을 7:3으로 줄여 보기" },
+      { name: "겹침", tool: "Photoshop",
+        before: bars(R(30,30,60,70,"#A8A8A0")+R(14,116,92,18), "#FFFFFF"),
+        after: bars(R(14,62,92,22)+R(30,30,60,70,"#A8A8A0")+R(14,62,16,22), "#FFFFFF"),
+        settings: [["레이어 순서", "글자 위 → 글자 일부 사진 뒤"], ["마스크", "없음 → 사진 윤곽"]],
+        next: "겹친 뒤에도 제목이 읽히는지 작은 화면에서 확인하기" },
+      { name: "그리드\n정렬", tool: "Figma",
+        before: bars(R(10,20,60,14)+R(24,48,70,6)+R(18,62,50,6)+R(36,110,60,30,"#C9B8F0"), "#FFFFFF"),
+        after: bars(R(12,20,60,14)+R(12,48,70,6)+R(12,62,50,6)+R(12,110,96,30,"#C9B8F0"), "#FFFFFF"),
+        settings: [["레이아웃 그리드", "없음 → 12열, 간격 24px"], ["시작선", "4곳 → 1곳"]],
+        next: "이미지 오른쪽 끝도 열 경계에 맞추기" },
+      { name: "단색\n블록", tool: "Figma",
+        before: bars(R(0,0,60,80,"#E7A1A1")+R(60,0,60,80,"#9FC3E7")+R(0,80,60,80,"#E7D59F")+R(60,80,60,80,"#B7E79F"), "#FFFFFF"),
+        after: bars(R(0,0,120,80,"#F2E14C")+R(0,80,72,80,"#C9B8F0")+R(72,80,48,80,"#A8E2C8")+R(10,20,80,18), "#FFFFFF"),
+        settings: [["색 수", "4 → 3"], ["블록 면적 비율", "1:1:1:1 → 5:3:2"]],
+        next: "가장 작은 블록에 날짜 정보 담기" },
+      { name: "질감", tool: "Photoshop",
+        before: bars(R(14,24,80,20), "#ECE5D3"),
+        after: bars('<filter id="nz"><feTurbulence baseFrequency=".9" numOctaves="2"/><feColorMatrix values="0 0 0 0 .08 0 0 0 0 .08 0 0 0 0 .08 0 0 0 .35 0"/></filter><rect width="120" height="160" filter="url(#nz)"/>' + R(14,24,80,20), "#ECE5D3"),
+        settings: [["노이즈", "0% → 6%"], ["혼합 모드", "표준 → 곱하기"], ["적용 범위", "배경만"]],
+        next: "질감 대신 망점 패턴으로 바꿔 비교하기" }
+    ];
+    const boardSvg = document.getElementById("board-svg");
+    const detail = document.getElementById("board-detail");
+    jigsaw(3, 2, 120).forEach((p, i) => {
+      const item = BOARD[i];
+      const g = makePiece(boardSvg, p, colorOf(p.x, p.y, 1), item.name, plain(item.name) + " 연습 결과 (화면 시안)");
+      activate(g, () => {
+        boardSvg.querySelectorAll(".piece").forEach((n) => n.removeAttribute("aria-current"));
+        g.setAttribute("aria-current", "true");
+        document.getElementById("board-empty").hidden = true;
+        detail.hidden = false;
+        detail.innerHTML =
+          '<h3></h3><p class="tool"></p>' +
+          '<div class="compare"><figure>' + item.before + '<figcaption>전</figcaption></figure>' +
+          '<figure>' + item.after + '<figcaption>후</figcaption></figure></div>' +
+          '<dl class="settings"></dl><p class="next"><b>다음 시도</b></p>';
+        detail.querySelector("h3").textContent = plain(item.name);
+        detail.querySelector(".tool").textContent = item.tool + " · 화면 시안 예시";
+        const dl = detail.querySelector(".settings");
+        item.settings.forEach(([k, v]) => {
+          const dt = document.createElement("dt"); dt.textContent = k;
+          const dd = document.createElement("dd"); dd.textContent = v;
+          dl.append(dt, dd);
+        });
+        detail.querySelector(".next").append(item.next);
+      });
+    });
+
+    // mobile: 소개 접기
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      document.querySelector(".intro-more").open = false;
+    }
+  })();
+
+  /* =====================================================================
+     4. Copilot Studio 연결 — 기존 흐름 유지
+        토큰 발급(BROKER_URL+SEALED) → Direct Line 연결 → startConversation 이벤트 → Web Chat 렌더링
+     ===================================================================== */
+  (function () {
+    "use strict";
+    const BROKER_URL = "https://dl-broker-juwon-4jt3z.azurewebsites.net/api/directlineToken";
+    const SEALED = "mGRq6P9sT0_8VJbHnvtRAAM2sJdRN8CnK-hKT5xBWnljqd1eiZEq4YcP4oJfWE-gUFWQM7X74OILMsqKztXnO_3dSEScbsfkRcrCoOmeMjxgWosAkULWab3AXYv3h38MTg6npheoqPp7am8juSh4RCnXEcbrsx0x-ULM2JYEXJ_GFQ6_kT6nyd46QdC32ahEl-jyfNKrEuBy84bwoewGlN9bjdNFW44tfKWFqhbuS2KaPPSpgo7OjPCnLF-MhjUcIZEijYp1Wl6zfwsihtHvK2fvvl_ozCDGKEtvCgngWUDpQf2RIZNbzM_fG1YfE9FBBw0uZ-ZlYXFKcjTySJKIR-PY5fFvi2n7C-hJzgrolcMln7P34styAx4YlfQSS_d3RQJ499fAx1DxfotSooqklBWMFimuoZbSnLO--Djmp1L2RRkbmJhByCP-_tL2TiRmA7Z2acBRzGgfQia_LvAnv0y4xGxE-tCOqbdvpIUMd_A4vqrVblAfnR-IZ-9JO6ASl1X7LPedQ-6IcHcrmj5LvKxzmNRcWeJLCsJoYQGBghB1hqF5fN3hnD7iGXPyyT7nVhPU1DZeTmJqqTrZGRRnM84oiLvgCfj8QkmCLgPfjXLn9Tld2CmhLMDaUOpcDKJaVM31slrY_JQJdYDWXA";
+
+    const conn = document.getElementById("conn");
+    const live = document.getElementById("status");
+    const loading = document.getElementById("chat-loading");
+    const errBox = document.getElementById("chat-error");
+    const errDetail = document.getElementById("chat-error-detail");
+    const prompts = document.querySelectorAll(".prompt");
+
+    let directLine = null, store = null, subs = [], generation = 0, waitTimer = null, waiting = false;
+
+    function setConn(state, text) {
+      conn.dataset.state = state;
+      conn.textContent = text;
+      live.textContent = text;
+    }
+    function setPrompts(enabled) {
+      prompts.forEach((b) => b.setAttribute("aria-disabled", enabled ? "false" : "true"));
+    }
+    function showError(message) {
+      clearWaiting();
+      loading.hidden = true;
+      errDetail.textContent = message;
+      errBox.hidden = false;
+      setConn("error", "연결 실패");
+      setPrompts(false);
+    }
+    function startWaiting() {
+      waiting = true;
+      setConn("waiting", "답변을 준비하고 있어요");
+      clearTimeout(waitTimer);
+      waitTimer = setTimeout(() => {
+        if (waiting) setConn("waiting", "답변이 늦어지고 있어요. 잠시 기다리거나 새 대화를 시작해 주세요.");
+      }, 60000);
+    }
+    function clearWaiting() {
+      waiting = false;
+      clearTimeout(waitTimer);
+    }
+
+    function teardown() {
+      clearWaiting();
+      subs.forEach((s) => { try { s.unsubscribe(); } catch (e) {} });
+      subs = [];
+      if (directLine) { try { directLine.end(); } catch (e) {} }
+      directLine = null; store = null;
+      const old = document.getElementById("webchat");
+      const fresh = document.createElement("div");
+      fresh.id = "webchat";
+      fresh.setAttribute("role", "main");
+      fresh.setAttribute("aria-label", "조각연습실 대화");
+      old.replaceWith(fresh);
+    }
+
+    const styleOptions = {
+      rootHeight: "100%",
+      primaryFont: getComputedStyle(document.documentElement).getPropertyValue("--font").trim(),
+      accent: "#151515",
+      backgroundColor: "#FFFFFF",
+      bubbleBackground: "#F4EFE2",
+      bubbleBorderWidth: 0,
+      bubbleBorderRadius: 0,
+      bubbleTextColor: "#151515",
+      bubbleFromUserBackground: "#C9B8F0",
+      bubbleFromUserBorderWidth: 0,
+      bubbleFromUserBorderRadius: 0,
+      bubbleFromUserTextColor: "#151515",
+      bubbleMaxWidth: 640,
+      botAvatarInitials: "조각",
+      botAvatarBackgroundColor: "#F2E14C",
+      userAvatarInitials: "나",
+      userAvatarBackgroundColor: "#A8E2C8",
+      hideUploadButton: false,
+      sendBoxBackground: "#FFFFFF",
+      sendBoxTextColor: "#151515",
+      sendBoxButtonColor: "#151515",
+      sendBoxButtonColorOnHover: "#151515",
+      sendBoxButtonShadeColorOnHover: "#F2E14C",
+      sendBoxBorderTop: "solid 2px #ECE5D3",
+      sendBoxHeight: 56,
+      suggestedActionLayout: "flow",
+      suggestedActionBackgroundColor: "#FFFFFF",
+      suggestedActionBackgroundColorOnHover: "#F2E14C",
+      suggestedActionBorderColor: "#151515",
+      suggestedActionBorderRadius: 0,
+      suggestedActionTextColor: "#151515",
+      transcriptVisualKeyboardIndicatorColor: "#151515"
+    };
+
     async function connect() {
+      const gen = ++generation;
+      teardown();
+      errBox.hidden = true;
+      loading.hidden = false;
+      setConn("connecting", "연결 중");
+      setPrompts(false);
+
       if (!window.WebChat ||
           typeof WebChat.createDirectLine !== "function" ||
           typeof WebChat.renderWebChat !== "function") {
-        showError("채팅 구성 요소를 불러오지 못했습니다. 네트워크를 확인한 뒤 새로고침해 주세요.");
+        showError("채팅 구성 요소를 불러오지 못했습니다.");
         return;
       }
 
@@ -34,10 +908,11 @@
           method: "POST",
           body: JSON.stringify({ sealed: SEALED })
         });
-      } catch {
-        showError("서버에 연결하지 못했습니다. 네트워크와 배포 주소를 확인해 주세요.");
+      } catch (e) {
+        if (gen === generation) showError("서버에 연결하지 못했습니다.");
         return;
       }
+      if (gen !== generation) return;
       if (!response.ok) {
         showError("서버가 연결 요청을 처리하지 못했습니다 (HTTP " + response.status + ").");
         return;
@@ -46,30 +921,71 @@
       let data;
       try {
         data = await response.json();
-      } catch {
-        showError("서버 응답을 읽을 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      } catch (e) {
+        if (gen === generation) showError("서버 응답을 읽을 수 없습니다.");
         return;
       }
+      if (gen !== generation) return;
       if (!data || typeof data.token !== "string" || !data.token.trim()) {
-        showError("서버에서 연결 토큰을 받지 못했습니다. 암호와 배포 주소를 확인해 주세요.");
+        showError("서버에서 연결 토큰을 받지 못했습니다.");
         return;
       }
 
       try {
-        const directLine = WebChat.createDirectLine({ token: data.token });
-        status.hidden = true;
+        directLine = WebChat.createDirectLine({ token: data.token });
+
+        subs.push(directLine.connectionStatus$.subscribe((s) => {
+          if (gen !== generation) return;
+          // 0 Uninitialized, 1 Connecting, 2 Online, 3 ExpiredToken, 4 FailedToConnect, 5 Ended
+          if (s === 1) setConn("connecting", "연결 중");
+          else if (s === 2) { loading.hidden = true; setPrompts(true); if (!waiting) setConn("online", "연결됨"); }
+          else if (s === 3) showError("연결 시간이 만료되었어요.");
+          else if (s === 4) showError("Direct Line 연결에 실패했어요.");
+        }));
+
+        store = WebChat.createStore({}, () => (next) => (action) => {
+          if (gen === generation) {
+            const a = action.payload && action.payload.activity;
+            if (action.type === "DIRECT_LINE/POST_ACTIVITY" && a && a.type === "message") {
+              startWaiting();
+            } else if (action.type === "DIRECT_LINE/INCOMING_ACTIVITY" && a && a.type === "message" &&
+                       !(a.from && a.from.role === "user")) {
+              clearWaiting();
+              setConn("online", "연결됨");
+            } else if (action.type === "DIRECT_LINE/POST_ACTIVITY_REJECTED") {
+              clearWaiting();
+              setConn("error", "메시지를 보내지 못했어요. 다시 보내 주세요.");
+            }
+          }
+          return next(action);
+        });
+
         directLine.postActivity({
           type: "event", name: "startConversation", from: { id: "user" }
         }).subscribe({
-          error: () => showError("첫 인사를 요청하지 못했습니다. 채팅창에 메시지를 입력해 주세요.")
+          error: () => { if (gen === generation) setConn("error", "첫 인사를 받지 못했어요. 메시지를 입력해 주세요."); }
         });
-        WebChat.renderWebChat({ directLine, locale: "ko-KR" }, document.getElementById("webchat"));
-      } catch {
-        showError("채팅을 시작하지 못했습니다. 새로고침 후 다시 시도해 주세요.");
+
+        WebChat.renderWebChat({ directLine, store, styleOptions, locale: "ko-KR" }, document.getElementById("webchat"));
+      } catch (e) {
+        showError("채팅을 시작하지 못했습니다.");
       }
     }
 
+    // 추천 프롬프트: 입력창에 채우기만 하고 전송은 사용자가
+    prompts.forEach((b) => b.addEventListener("click", () => {
+      if (b.getAttribute("aria-disabled") === "true" || !store) return;
+      store.dispatch({ type: "WEB_CHAT/SET_SEND_BOX", payload: { text: b.dataset.text } });
+      requestAnimationFrame(() => {
+        const input = document.querySelector("#webchat .webchat__send-box-text-box__input, #webchat .webchat__send-box-text-box__text-area, #webchat textarea, #webchat input[type='text']");
+        if (input) input.focus();
+      });
+    }));
+
+    document.getElementById("new-chat").addEventListener("click", connect);
+    document.getElementById("retry").addEventListener("click", connect);
     connect();
+  })();
   </script>
 </body>
 </html>
